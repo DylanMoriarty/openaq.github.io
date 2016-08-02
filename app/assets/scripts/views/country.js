@@ -4,13 +4,10 @@ import { connect } from 'react-redux';
 import _ from 'lodash';
 
 import { formatThousands } from '../utils/format';
-import { fetchLocations, invalidateAllLocationData, fetchLatestMeasurements } from '../actions/action-creators';
-import { getMapColors } from '../utils/colors';
-import { getCountryBbox } from '../utils/countries';
+import { fetchLocations, invalidateAllLocationData } from '../actions/action-creators';
 import InfoMessage from '../components/info-message';
 import LocationCard from '../components/location-card';
 import ShareBtn from '../components/share-btn';
-import MapComponent from '../components/map';
 
 var Country = React.createClass({
   displayName: 'Country',
@@ -20,18 +17,10 @@ var Country = React.createClass({
 
     _invalidateAllLocationData: React.PropTypes.func,
     _fetchLocations: React.PropTypes.func,
-    _fetchLatestMeasurements: React.PropTypes.func,
 
     countries: React.PropTypes.array,
     sources: React.PropTypes.array,
     parameters: React.PropTypes.array,
-
-    latestMeasurements: React.PropTypes.shape({
-      fetching: React.PropTypes.bool,
-      fetched: React.PropTypes.bool,
-      error: React.PropTypes.string,
-      data: React.PropTypes.object
-    }),
 
     locations: React.PropTypes.shape({
       fetching: React.PropTypes.bool,
@@ -52,7 +41,6 @@ var Country = React.createClass({
     this.props._fetchLocations(1, {
       country: this.props.params.name
     }, 1000);
-    this.props._fetchLatestMeasurements({country: this.props.params.name, has_geo: 'true'});
   },
 
   //
@@ -64,7 +52,6 @@ var Country = React.createClass({
   },
 
   componentDidUpdate: function (prevProps) {
-    // this.props._invalidateAllLocationData();
     this.shouldFetchData(prevProps) && this.fetchData();
   },
 
@@ -72,7 +59,7 @@ var Country = React.createClass({
   // Start render methods
   //
 
-  renderCountryList: function () {
+  renderContent: function () {
     let {fetched, fetching, error, data: {results}} = this.props.locations;
     if (!fetched && !fetching) {
       return null;
@@ -127,53 +114,20 @@ var Country = React.createClass({
     ));
 
     return (
-      <div className='countries-list'>
-        {countriesList}
-      </div>
-    );
-  },
+      <div>
+        <aside className='inpage__aside'>
+          <ul>
+            {_.map(groupped, (o, k) => (
+              <li key={`list-${k}`}><a href='#'>{k}</a></li>
+            ))}
+          </ul>
+        </aside>
 
-  renderMap: function () {
-    let {fetched, fetching, error, data: {results}} = this.props.latestMeasurements;
-    if (!fetched && !fetching) {
-      return null;
-    }
-
-    if (fetching) {
-      return (<p>Data is loading</p>);
-    }
-
-    if (error) {
-      return (
-        <InfoMessage>
-          <h2>Uhoh, something went wrong.</h2>
-          <p>There was a problem getting the data. If the problem persists let us know.</p>
-          <a href='mailto:info@openaq.org' title='Send us an email'>Send us an Email</a>
-        </InfoMessage>
-      );
-    }
-
-    const mapColors = getMapColors();
-    const colorWidth = 100 / mapColors.length;
-    const bbox = getCountryBbox(this.props.params.name);
-
-    return (
-      <div className='country-map'>
-        <MapComponent
-          bbox={bbox}
-          zoom={1}
-          measurements={results}
-          parameter={_.find(this.props.parameters, {id: 'pm25'})}
-          disableScrollZoom >
-            <div>
-              <p>Showing most recent values for PM2.5</p>
-              <ul className='color-scale'>
-                {mapColors.map(o => (
-                  <li key={o.label} style={{'backgroundColor': o.color, width: `${colorWidth}%`}} className='color-scale__item'><span className='color-scale__value'>{o.label}</span></li>
-                ))}
-              </ul>
-            </div>
-        </MapComponent>
+        <div className='inpage__content'>
+          <div className='countries-list'>
+            {countriesList}
+          </div>
+        </div>
       </div>
     );
   },
@@ -194,7 +148,7 @@ var Country = React.createClass({
             </div>
             <div>
               <ul className='country-stats'>
-                <li><strong>{countryData.cities}</strong> areas</li>
+                <li><strong>{countryData.cities}</strong> cities</li>
                 <li><strong>{countryData.locations}</strong> locations</li>
                 <li><strong>{formatThousands(countryData.count)}</strong> measurements</li>
                 <li><strong>{sourcesData.length}</strong> {sourcesData.length > 1 ? 'sources' : 'source'}</li>
@@ -210,11 +164,10 @@ var Country = React.createClass({
         </header>
         <div className='inpage__body'>
 
-          <div className='fold'>
+          <div className='fold' id='country-data-fold'>
             <div className='inner'>
               <div className='fold__body'>
-                {this.renderMap()}
-                {this.renderCountryList()}
+                {this.renderContent()}
               </div>
             </div>
           </div>
@@ -234,7 +187,6 @@ function selector (state) {
     sources: state.baseData.data.sources,
     parameters: state.baseData.data.parameters,
 
-    latestMeasurements: state.latestMeasurements,
     locations: state.locations
   };
 }
@@ -242,7 +194,6 @@ function selector (state) {
 function dispatcher (dispatch) {
   return {
     _fetchLocations: (...args) => dispatch(fetchLocations(...args)),
-    _fetchLatestMeasurements: (...args) => dispatch(fetchLatestMeasurements(...args)),
     _invalidateAllLocationData: (...args) => dispatch(invalidateAllLocationData(...args))
   };
 }

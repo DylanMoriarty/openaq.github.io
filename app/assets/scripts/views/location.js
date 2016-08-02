@@ -90,8 +90,8 @@ var Location = React.createClass({
       // Get the measurements.
       let toDate = moment.utc();
       let fromDate = toDate.clone().subtract(8, 'days');
-      this.props._fetchLatestMeasurements({city: loc.city, has_geo: 'true'});
-      this.props._fetchMeasurements(loc.location, fromDate.toISOString(), toDate.toISOString());
+      this.props._fetchLatestMeasurements({city: loc.city});
+      this.props._fetchMeasurements(loc.location, fromDate, toDate);
     }
   },
 
@@ -147,7 +147,7 @@ var Location = React.createClass({
           <div className='col-main'>
             <dl>
               <dt>Measurements</dt>
-              <dd>{formatThousands(measurements.meta.totalMeasurements)}</dd>
+              <dd>{formatThousands(measurements.meta.found)}</dd>
               <dt>Collection Dates</dt>
               <dd>{sDate} - {eDate}</dd>
               <dt>Coordinates</dt>

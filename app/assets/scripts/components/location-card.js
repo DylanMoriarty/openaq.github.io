@@ -41,9 +41,7 @@ var LocationCard = React.createClass({
               <li>Collection Start: {started}</li>
               <li>Measurements: {formatThousands(this.props.totalMeasurements)}</li>
               <li>Values: {this.renderParameters()}</li>
-              {this.props.sourceData
-              ? <li>Source: <a href={this.props.sourceData.url} title={`View source for  ${this.props.name}`}>{this.props.sourceData.name}</a></li>
-              : null}
+              <li>Source: <a href={this.props.sourceData.url} title={`View source for  ${this.props.name}`}>{this.props.sourceData.name}</a></li>
             </ul>
           </div>
           <footer className='card__footer'>
